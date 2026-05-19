@@ -1,18 +1,24 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --bg-main: #0f172a;
-  --bg-card: rgba(30, 41, 59, 0.7);
-  --bg-card-hover: rgba(30, 41, 59, 0.9);
-  --primary: #3b82f6;
-  --primary-hover: #2563eb;
-  --secondary: #10b981;
-  --accent: #8b5cf6;
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --border-color: rgba(148, 163, 184, 0.1);
-  --danger: #ef4444;
-  --success: #22c55e;
+  --bg-main: #0B132B; /* Deep Navy */
+  --bg-card: rgba(28, 37, 65, 0.7); /* Translucent Blue/Gray */
+  --bg-card-hover: rgba(58, 80, 107, 0.8);
+  
+  /* Cyber Teal Accents */
+  --primary: #48E5C2; /* Vibrant Cyan/Teal */
+  --primary-hover: #33C5A6;
+  --secondary: #5BC0BE; /* Soft Ocean Blue */
+  --accent: #1C2541;
+  
+  /* Text */
+  --text-main: #F0F4EF;
+  --text-muted: #8A9CA8;
+  
+  /* Utilities */
+  --border-color: rgba(91, 192, 190, 0.2);
+  --danger: #FF6B6B;
+  --success: #48E5C2;
 }
 
 * {
@@ -27,9 +33,10 @@ body {
   color: var(--text-main);
   line-height: 1.5;
   min-height: 100vh;
+  /* Cyberpunk deep ocean gradient */
   background-image: 
-    radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+    radial-gradient(circle at 10% 20%, rgba(72, 229, 194, 0.1) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(91, 192, 190, 0.15) 0%, transparent 40%);
   background-attachment: fixed;
 }
 
@@ -49,13 +56,20 @@ button {
   font-family: inherit;
 }
 
-/* Glassmorphism utilities */
+/* Modern Glassmorphism */
 .glass {
   background: var(--bg-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border-color);
   border-radius: 16px;
+  box-shadow: 0 8px 32px 0 rgba(11, 19, 43, 0.5);
+  transition: all 0.3s ease;
+}
+
+.glass:hover {
+  box-shadow: 0 8px 32px 0 rgba(72, 229, 194, 0.15);
+  border-color: rgba(72, 229, 194, 0.4);
 }
 
 /* Layout */
@@ -79,8 +93,8 @@ button {
   justify-content: space-between;
   align-items: center;
   padding: 1.25rem 2rem;
-  background: rgba(15, 23, 42, 0.8);
-  backdrop-filter: blur(16px);
+  background: rgba(11, 19, 43, 0.85);
+  backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border-color);
   position: sticky;
   top: 0;
@@ -91,12 +105,11 @@ button {
   font-family: 'Outfit', sans-serif;
   font-size: 1.5rem;
   font-weight: 800;
-  background: linear-gradient(135deg, var(--primary), var(--accent));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--primary);
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  letter-spacing: -0.5px;
 }
 
 .nav-links {
@@ -129,24 +142,28 @@ button {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary), var(--accent));
-  color: white;
-  box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.39);
+  background: var(--primary);
+  color: #0B132B;
+  font-weight: 700;
+  box-shadow: 0 4px 15px rgba(72, 229, 194, 0.3);
+  border: none;
 }
 
 .btn-primary:hover {
+  background: var(--primary-hover);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 6px 20px rgba(72, 229, 194, 0.5);
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--text-main);
-  border: 1px solid var(--border-color);
+  background: rgba(91, 192, 190, 0.1);
+  color: var(--primary);
+  border: 1px solid var(--primary);
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(91, 192, 190, 0.2);
+  color: var(--primary);
 }
 
 .btn-danger {
@@ -180,20 +197,25 @@ button {
 
 .form-control {
   width: 100%;
-  padding: 0.8rem 1rem;
-  background: rgba(15, 23, 42, 0.5);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  color: var(--text-main);
+  padding: 0.9rem 1.2rem;
+  background: rgba(45, 61, 88, 0.6);
+  border: 1px solid rgba(72, 229, 194, 0.3);
+  border-radius: 10px;
+  color: #FFFFFF;
   font-family: inherit;
   font-size: 1rem;
-  transition: border-color 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .form-control:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  box-shadow: 0 0 15px rgba(72, 229, 194, 0.3), inset 0 2px 5px rgba(0,0,0,0.2);
+  background: rgba(58, 80, 107, 0.8);
+}
+
+.form-control::placeholder {
+  color: rgba(240, 244, 239, 0.4);
 }
 
 /* Auth Pages */
@@ -225,9 +247,8 @@ button {
   font-size: 4rem;
   line-height: 1.1;
   margin-bottom: 1.5rem;
-  background: linear-gradient(to right, #60a5fa, #a78bfa);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--primary);
+  font-weight: 800;
 }
 
 .hero-subtitle {

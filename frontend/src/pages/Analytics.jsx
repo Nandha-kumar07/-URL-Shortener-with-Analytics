@@ -7,7 +7,8 @@ import { format, subDays, isSameDay } from 'date-fns';
 import { ArrowLeft, ExternalLink, Calendar, MapPin, Monitor } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-const BASE_SHORT_URL = 'http://localhost:5000';
+// Use environment variable in production, fallback to local IP for dev testing
+const BASE_SHORT_URL = import.meta.env.VITE_BACKEND_URL || (window.location.protocol + '//' + window.location.hostname + ':5000');
 
 
 const Analytics = () => {

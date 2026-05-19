@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const BASE_SHORT_URL = 'http://localhost:5000';
+const BASE_SHORT_URL = import.meta.env.VITE_BACKEND_URL || (window.location.protocol + '//' + window.location.hostname + ':5000');
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import axios from 'axios';
@@ -65,22 +65,29 @@ const Dashboard = () => {
 
   return (
     <div>
-      <div className="dashboard-header">
-        <h2>Your Dashboard</h2>
+      <div className="dashboard-header" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '2.5rem' }}>
+        <h2 style={{ fontSize: '2.2rem' }}>Dashboard Overview</h2>
+        <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', maxWidth: '600px' }}>
+          Manage your links, track their performance, and generate beautiful QR codes all in one place.
+        </p>
       </div>
 
       <div className="url-shortener-card glass">
-        <h3>Create New Short Link</h3>
-        <form className="url-form" onSubmit={handleSubmit(onSubmit)}>
-          <div style={{ flex: 1 }}>
+        <h3 style={{ fontSize: '1.4rem', marginBottom: '0.5rem' }}>Generate Short Link</h3>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginBottom: '1.5rem' }}>
+          Paste your long, bulky URL below to instantly transform it into a clean, trackable short link.
+        </p>
+        <form style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }} onSubmit={handleSubmit(onSubmit)}>
+          <div>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: 'var(--text-main)' }}>Destination URL</label>
             <input 
               type="text" 
               className="form-control" 
-              placeholder="Paste long URL here (e.g., https://example.com)"
+              placeholder="https://example.com/very-long-link..."
               {...register('originalUrl', { 
                 required: 'URL is required',
                 pattern: {
-                  value: /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/,
+                  value: /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(.*)$/,
                   message: 'Enter a valid URL'
                 }
               })}
@@ -88,31 +95,47 @@ const Dashboard = () => {
             {errors.originalUrl && <p className="error-msg">{errors.originalUrl.message}</p>}
           </div>
           
-          <div style={{ flex: 0.5 }}>
-            <input 
-              type="text" 
-              className="form-control" 
-              placeholder="Custom alias (optional)"
-              {...register('customAlias', {
-                pattern: {
-                  value: /^[a-zA-Z0-9-_]+$/,
-                  message: 'Only letters, numbers, hyphens, underscores'
-                }
-              })}
-            />
-            {errors.customAlias && <p className="error-msg">{errors.customAlias.message}</p>}
+          <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+            <div style={{ flex: '1 1 200px' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: 'var(--text-main)' }}>Custom Alias (Optional)</label>
+              <input 
+                type="text" 
+                className="form-control" 
+                placeholder="e.g., my-campaign"
+                {...register('customAlias', {
+                  pattern: {
+                    value: /^[a-zA-Z0-9-_]+$/,
+                    message: 'Only letters, numbers, hyphens, underscores'
+                  }
+                })}
+              />
+              {errors.customAlias && <p className="error-msg">{errors.customAlias.message}</p>}
+            </div>
+
+            <div style={{ flex: '1 1 200px' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: 'var(--text-main)' }}>Expiry Date (Optional)</label>
+              <input 
+                type="date" 
+                className="form-control" 
+                {...register('expiresAt')}
+              />
+            </div>
           </div>
 
-          <button type="submit" className="btn btn-primary" disabled={shortening}>
-            {shortening ? 'Shortening...' : 'Shorten'}
+          <button type="submit" className="btn btn-primary" style={{ padding: '0.8rem', fontSize: '1.05rem', fontWeight: '700' }} disabled={shortening}>
+            {shortening ? 'Generating...' : 'Shorten URL'}
           </button>
         </form>
       </div>
 
-      <h3>Your Links</h3>
+      <div style={{ marginTop: '3rem', marginBottom: '1.5rem' }}>
+        <h3 style={{ fontSize: '1.6rem' }}>Active Links</h3>
+        <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>Monitor click statistics and manage your active short URLs below.</p>
+      </div>
       {urls.length === 0 ? (
-        <p style={{ color: 'var(--text-muted)', marginTop: '1rem' }}>You haven't created any links yet.</p>
-      ) : (
+        <div className="glass" style={{ padding: '3rem', textAlign: 'center', marginTop: '1rem' }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>You haven't created any links yet. Generate your first one above!</p>
+        </div>      ) : (
         <div className="url-list" style={{ marginTop: '1rem' }}>
           {urls.map(url => (
             <div key={url._id} className="url-card glass">
@@ -141,6 +164,11 @@ const Dashboard = () => {
                 <span>{new Date(url.createdAt).toLocaleDateString()}</span>
                 <span>{url.clicks} clicks</span>
               </div>
+              {url.expiresAt && (
+                <div style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: '0.5rem', textAlign: 'center' }}>
+                  Expires: {new Date(url.expiresAt).toLocaleString()}
+                </div>
+              )}
               
               <Link to={`/analytics/${url.shortId}`} className="btn btn-primary" style={{ width: '100%', marginTop: '1rem', padding: '0.5rem' }}>
                 <BarChart2 size={16} /> View Analytics

@@ -3,13 +3,10 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { check, validationResult } = require('express-validator');
-
-const User = require('../models/User');
+const supabase = require('../utils/supabase');
 const auth = require('../middleware/auth');
 
 // @route   POST api/auth/register
-// @desc    Register user
-// @access  Public
 router.post('/register', [
   check('email', 'Please include a valid email').isEmail(),
   check('password', 'Please enter a password with 6 or more characters').isLength({ min: 6 })
@@ -20,33 +17,40 @@ router.post('/register', [
   const { email, password } = req.body;
 
   try {
-    let user = await User.findOne({ email });
-    if (user) {
+    // Check if user exists
+    const { data: existing } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', email.toLowerCase())
+      .single();
+
+    if (existing) {
       return res.status(400).json({ msg: 'User already exists' });
     }
 
-    user = new User({ email, password });
-
+    // Hash password
     const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(password, salt);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
-    await user.save();
+    // Create user
+    const { data: user, error } = await supabase
+      .from('users')
+      .insert({ email: email.toLowerCase(), password: hashedPassword })
+      .select('id, email')
+      .single();
+
+    if (error) throw new Error(error.message);
 
     const payload = { user: { id: user.id } };
-
-    jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE || '7d' }, (err, token) => {
-      if (err) throw err;
-      res.json({ token });
-    });
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE || '7d' });
+    res.json({ token });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
+    console.error('Register error:', err.message);
+    res.status(500).json({ msg: 'Server error' });
   }
 });
 
 // @route   POST api/auth/login
-// @desc    Authenticate user & get token
-// @access  Public
 router.post('/login', [
   check('email', 'Please include a valid email').isEmail(),
   check('password', 'Password is required').exists()
@@ -57,8 +61,13 @@ router.post('/login', [
   const { email, password } = req.body;
 
   try {
-    let user = await User.findOne({ email });
-    if (!user) {
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email.toLowerCase())
+      .single();
+
+    if (error || !user) {
       return res.status(400).json({ msg: 'Invalid Credentials' });
     }
 
@@ -68,27 +77,28 @@ router.post('/login', [
     }
 
     const payload = { user: { id: user.id } };
-
-    jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE || '7d' }, (err, token) => {
-      if (err) throw err;
-      res.json({ token });
-    });
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE || '7d' });
+    res.json({ token });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
+    console.error('Login error:', err.message);
+    res.status(500).json({ msg: 'Server error' });
   }
 });
 
 // @route   GET api/auth/me
-// @desc    Get user data
-// @access  Private
 router.get('/me', auth, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-password');
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('id, email, created_at')
+      .eq('id', req.user.id)
+      .single();
+
+    if (error) throw new Error(error.message);
     res.json(user);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    console.error('Me error:', err.message);
+    res.status(500).json({ msg: 'Server Error' });
   }
 });
 

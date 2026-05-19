@@ -7,8 +7,8 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Configure axios base url - uses Vite proxy in dev, relative in prod
-  axios.defaults.baseURL = '/api';
+  // Configure axios base url - uses Vite environment variable in prod, fallback to relative proxy in dev
+  axios.defaults.baseURL = import.meta.env.VITE_API_URL || '/api';
 
   useEffect(() => {
     const token = localStorage.getItem('token');

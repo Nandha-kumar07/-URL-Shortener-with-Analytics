@@ -1,37 +1,49 @@
 const express = require('express');
 const router = express.Router();
-const Url = require('../models/Url');
+const supabase = require('../utils/supabase');
 
 // @route   GET /:shortId
 // @desc    Redirect to original URL
-// @access  Public
 router.get('/:shortId', async (req, res) => {
   try {
-    const url = await Url.findOne({ shortId: req.params.shortId });
+    const { data: url, error } = await supabase
+      .from('urls')
+      .select('*')
+      .eq('short_id', req.params.shortId)
+      .single();
 
-    if (url) {
-      // Record visit analytics
-      const visitData = {
-        timestamp: new Date(),
-        ip: req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress,
-        userAgent: req.headers['user-agent']
-      };
-
-      url.clicks += 1;
-      url.visitHistory.push(visitData);
-      
-      // Keep only last 100 visits if we want to limit array size, or let it grow
-      // For a real app, storing large arrays in documents is bad, but for hackathon it's fine.
-
-      await url.save();
-
-      return res.redirect(url.originalUrl);
-    } else {
-      return res.status(404).json('No URL found');
+    if (error || !url) {
+      return res.status(404).json({ msg: 'No URL found' });
     }
+
+    // Check expiration
+    if (url.expires_at && new Date(url.expires_at) < new Date()) {
+      return res.status(410).send(`
+        <div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
+          <h1 style="color: #ff4444;">Link Expired</h1>
+          <p>This short link has reached its expiration date and is no longer active.</p>
+        </div>
+      `);
+    }
+
+    // Record visit
+    const visitData = {
+      url_id: url.id,
+      timestamp: new Date().toISOString(),
+      ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip,
+      user_agent: req.headers['user-agent']
+    };
+
+    // Increment clicks and record visit in parallel
+    await Promise.all([
+      supabase.from('urls').update({ clicks: url.clicks + 1 }).eq('id', url.id),
+      supabase.from('visits').insert(visitData)
+    ]);
+
+    return res.redirect(url.original_url);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).json('Server error');
+    console.error('Redirect error:', err.message);
+    res.status(500).json({ msg: 'Server error' });
   }
 });
 
