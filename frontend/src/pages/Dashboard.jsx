@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const BASE_SHORT_URL = import.meta.env.VITE_BACKEND_URL || (window.location.protocol + '//' + window.location.hostname + ':5000');
+const BASE_SHORT_URL = import.meta.env.VITE_BACKEND_URL || (window.location.port === '5173' ? 'http://localhost:5000' : (window.location.protocol + '//' + window.location.host));
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import axios from 'axios';

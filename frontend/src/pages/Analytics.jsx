@@ -8,7 +8,7 @@ import { ArrowLeft, ExternalLink, Calendar, MapPin, Monitor } from 'lucide-react
 import toast from 'react-hot-toast';
 
 // Use environment variable in production, fallback to local IP for dev testing
-const BASE_SHORT_URL = import.meta.env.VITE_BACKEND_URL || (window.location.protocol + '//' + window.location.hostname + ':5000');
+const BASE_SHORT_URL = import.meta.env.VITE_BACKEND_URL || (window.location.port === '5173' ? 'http://localhost:5000' : (window.location.protocol + '//' + window.location.host));
 
 
 const Analytics = () => {
