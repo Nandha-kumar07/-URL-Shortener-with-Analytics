@@ -4,7 +4,12 @@ const supabase = require('../utils/supabase');
 
 // @route   GET /:shortId
 // @desc    Redirect to original URL
-router.get('/:shortId', async (req, res) => {
+router.get('/:shortId', async (req, res, next) => {
+  const reservedKeywords = ['login', 'register', 'dashboard', 'api', 'assets', 'favicon.ico'];
+  if (reservedKeywords.includes(req.params.shortId)) {
+    return next();
+  }
+
   try {
     const { data: url, error } = await supabase
       .from('urls')
